@@ -2,7 +2,7 @@
 # Uso: p4create [debian|arch|manjaro|fedora|opensuse|alpine|all]
 
 # 1. Carica la configurazione globale
-CONFIG_FILE="$HOME/oa-tools/bin/p4config"
+CONFIG_FILE="$HOME/forge/bin/p4config"
 if [ ! -f "$CONFIG_FILE" ]; then 
     echo "❌ Errore: p4config non trovato in $CONFIG_FILE!"
     exit 1

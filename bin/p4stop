@@ -1,8 +1,8 @@
 #!/bin/bash
 # Uso: p4stop [debian|arch|manjaro|fedora]
 
-if [ ! -f ~/oa-tools/bin/p4config ]; then echo "Errore: p4config non trovato in ~/bin/!"; exit 1; fi
-source ~/oa-tools/bin/p4config
+if [ ! -f ~/forge/bin/p4config ]; then echo "Errore: p4config non trovato in ~/forge/bin/!"; exit 1; fi
+source ~/forge/bin/p4config
 
 DISTRO=$1
 VAR_NAME="VM_ID_${DISTRO}"
