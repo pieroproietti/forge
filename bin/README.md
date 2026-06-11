@@ -63,7 +63,7 @@ Per fare in modo che il tuo terminale riconosca automaticamente tutti i comandi 
 setxkbmap it
 
 # Aggiunge la cartella bin del monorepo oa-tools al PATH dell'utente
-export PATH="$HOME/oa-tools/bin:$PATH"
+export PATH="$HOME/forge/bin:$PATH"
 source ~/.local/share/bash-completion/completions/p4-suite
 
 ```
