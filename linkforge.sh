@@ -1,3 +1,4 @@
+#ln -s ~/forge/fresh-eggs ~/fresh-eggs
 ln -s ~/forge/oa-tools ~/oa-tools
 #ln -s ~/forge/oa-wardrobe ~/oa-wardrobe
 #ln -s ~/forge/penguins-blog ~/penguins-blog

@@ -1,6 +1,6 @@
 # AGENTS.md — Piero Proietti's Development Environment
 > This file is in ~/AGENTS.md and provides global context for AI agents
-> working across all three repositories in this workspace.
+> working across the five repositories in this workspace.
 
 ## Author
 - **Name:** Piero Proietti (artisan)
@@ -13,6 +13,7 @@
 
 ```
 ~/
+├── fresh-eggs/      # Installer/configurator scripts for penguins-eggs and oa-tools (bash)
 ├── oa-tools/        # Next-generation remastering engine (C + Go)
 ├── oa-wardrobe/     # Costumes (YAML) + scripts consumed by coa wardrobe
 ├── penguins-eggs/   # Stable production remastering tool (TypeScript)
@@ -68,6 +69,23 @@
   - https://penguins-eggs.net/docs/Tutorial/eggs-5-minutes
   - https://github.com/pieroproietti/penguins-eggs/blob/master/CHANGELOG.md
 
+### fresh-eggs — Installer & Configurator (bash scripts)
+- **Path:** ~/fresh-eggs
+- **GitHub:** https://github.com/pieroproietti/fresh-eggs
+- **Content:** bash scripts only — no compiled code.
+- **Purpose:** Installs and configures penguins-eggs (and refreshes
+  oa-tools) on AlmaLinux, AlpineLinux, Arch, Debian, Devuan, Fedora,
+  Manjaro, Openmamba, openSUSE, RockyLinux, Ubuntu and most derivatives.
+  Ensures Node.js >= 22.x (via nodesource if needed) and sets up the
+  native repositories (penguins-eggs-repo, ppa, Chaotic-AUR).
+- **Key scripts:** `fresh-eggs.sh` (main installer), `refresh.sh`
+  (server-side: `basket|sourceforge`, both targets carry penguins-eggs
+  + oa-tools; `refresh-basket.sh`/`refresh-sourceforge.sh` are wrappers),
+  `ensure-node.sh`, `distros.yaml`
+- **Key docs:**
+  - https://github.com/pieroproietti/fresh-eggs/blob/main/README.md
+  - https://github.com/pieroproietti/fresh-eggs/blob/main/SUPPORTED-DISTROS.md
+
 ### penguins-blog — Official Website
 - **Path:** ~/penguins-blog
 - **GitHub:** https://github.com/pieroproietti/penguins-blog
@@ -83,8 +101,10 @@
 
 ```
 penguins-eggs (TypeScript, stable)
+    ├── installed/configured by → fresh-eggs (bash scripts)
     └── successor → oa-tools (C + Go, next-gen)
                          ├── uses costumes from → oa-wardrobe (YAML + bash)
+                         ├── refreshed by → fresh-eggs (refresh-oa-tools.sh)
                          └── documented on → penguins-blog (Docusaurus)
 ```
 
