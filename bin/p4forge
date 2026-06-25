@@ -99,18 +99,6 @@ elif [ "$FORGE" == "fedora" ]; then
     echo "Installazione strumenti di sviluppo Fedora..."
     sudo dnf install -y go @development-tools rpm-build rpmdevtools
 
-elif [ "$FORGE" == "opensuse" ]; then
-    echo "Impostazione rete statica openSUSE (192.168.1.205)..."
-    sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
-      ipv4.method manual \
-      ipv4.addresses 192.168.1.205/24 \
-      ipv4.gateway 192.168.1.254 \
-      ipv4.dns "192.168.1.254 8.8.8.8 8.8.4.4"
-    sudo nmcli con up "ens18"
-
-    echo "Installazione strumenti di sviluppo openSUSE..."
-    sudo zypper install -y go rpm-build rpmdevtools -t pattern devel_basis
-
 elif [ "$FORGE" == "manjaro" ]; then
     echo "Impostazione rete statica Arch tramite systemd-networkd (192.168.1.206)..."
     sudo rm -f /etc/systemd/network/*.network
@@ -121,7 +109,7 @@ elif [ "$FORGE" == "manjaro" ]; then
 Name=ens18
 
 [Network]
-Address=192.168.1.206/24
+Address=192.168.1.205/24
 Gateway=192.168.1.254
 DNS=192.168.1.254
 DNS=8.8.8.8
@@ -134,6 +122,18 @@ EOF
 
     echo "Installazione strumenti di sviluppo Manjaro..."
     sudo pacman -Sy --noconfirm base-devel go
+
+elif [ "$FORGE" == "opensuse" ]; then
+    echo "Impostazione rete statica openSUSE (192.168.1.205)..."
+    sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
+      ipv4.method manual \
+      ipv4.addresses 192.168.1.205/24 \
+      ipv4.gateway 192.168.1.254 \
+      ipv4.dns "192.168.1.254 8.8.8.8 8.8.4.4"
+    sudo nmcli con up "ens18"
+
+    echo "Installazione strumenti di sviluppo openSUSE..."
+    sudo zypper install -y go rpm-build rpmdevtools -t pattern devel_basis
 
 else
     echo "❌ Errore: Fucina '$FORGE' non supportata da questo script."
