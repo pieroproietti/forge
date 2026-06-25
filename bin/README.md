@@ -1,4 +1,4 @@
-# v4tools & g4tools: Interfaccia Uomo-Macchina per Anziani del Terminale (e Smemorati)
+# g4tools: Interfaccia uomo-macchina per anziani del Terminale (e smemorati)
 
 I file presenti in questa cartella **non sono indispensabili** per il funzionamento, la compilazione o la rimasterizzazione di `oa-tools`. Il core del progetto vive, si gestisce e si compila benissimo anche senza di essi.
 
@@ -64,6 +64,4 @@ setxkbmap it
 
 # Aggiunge la cartella bin del monorepo oa-tools al PATH dell'utente
 export PATH="$HOME/forge/bin:$PATH"
-source ~/.local/share/bash-completion/completions/p4-suite
-
 ```
