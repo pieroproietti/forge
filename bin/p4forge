@@ -34,18 +34,39 @@ EOF
     sudo apk add alpine-sdk go
 
 elif [ "$FORGE" == "arch" ]; then
-    echo "Impostazione rete statica Arch (192.168.1.202)..."
-    # Assumendo che usi NetworkManager. Se usi systemd-networkd dovrai creare il file .network
-    sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
-      ipv4.method manual \
-      ipv4.addresses 192.168.1.202/24 \
-      ipv4.gateway 192.168.1.1 \
-      ipv4.dns "192.168.1.254 8.8.8.8 8.8.4.4"
-    sudo nmcli con up "ens18"
+    echo "Impostazione rete statica Arch tramite systemd-networkd (192.168.1.202)..."
+    
+    # Rimuove eventuali configurazioni vecchie per evitare conflitti
+    sudo rm -f /etc/systemd/network/*.network
+    
+    # Crea la directory nel caso non esista
+    sudo mkdir -p /etc/systemd/network/
+
+    # Forgia il file di configurazione per ens18
+    cat <<EOF | sudo tee /etc/systemd/network/20-ens18.network
+[Match]
+Name=ens18
+
+[Network]
+Address=192.168.1.202/24
+Gateway=192.168.1.1
+DNS=192.168.1.254
+DNS=8.8.8.8
+EOF
+
+    # Assicura che i servizi nativi di systemd siano attivati
+    sudo systemctl enable --now systemd-networkd
+    sudo systemctl enable --now systemd-resolved
+
+    # Collega il risolutore DNS
+    sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+
+    # Applica la configurazione
+    sudo systemctl restart systemd-networkd
 
     echo "Installazione strumenti di sviluppo Arch..."
     sudo pacman -Sy --noconfirm base-devel go
-
+    
 elif [ "$FORGE" == "debian" ]; then
     echo "Impostazione rete statica Debian (192.168.1.203)..."
     # Le versioni server di Debian usano interfaces.
