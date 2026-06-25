@@ -1,19 +1,30 @@
 #!/bin/bash
 
-# Prende il primo argomento passato allo script
-FORGE=$1
+echo "🔍 Ispezione dell'ambiente in corso..."
 
-# Controllo di sicurezza: verifica che l'argomento non sia vuoto
-if [ -z "$FORGE" ]; then
-    echo "Errore: devi specificare il nome della fucina (es. ./restore-fucina.sh fedora)"
+# 1. Rilevamento automatico del sistema operativo
+if [ -f /etc/os-release ]; then
+    # Importa le variabili native del sistema (ID, PRETTY_NAME, ecc.)
+    source /etc/os-release
+else
+    echo "❌ Errore: File /etc/os-release non trovato. Impossibile rilevare il sistema."
     exit 1
 fi
 
-echo "🛠️ Avvio ripristino fucina: $FORGE..."
+# 2. Normalizzazione del nome della fucina
+# Gestisce casi speciali come "opensuse-tumbleweed" o "opensuse-leap"
+if [[ "$ID" == *"opensuse"* ]] || [[ "$ID_LIKE" == *"suse"* ]]; then
+    FORGE="opensuse"
+else
+    FORGE=$ID
+fi
 
+echo "🛠️ Sistema rilevato: $PRETTY_NAME"
+echo "⚙️ Avvio autoconfigurazione fucina per: $FORGE..."
+
+# 3. Applicazione delle configurazioni specifiche
 if [ "$FORGE" == "alpine" ]; then
     echo "Impostazione rete statica Alpine (192.168.1.201)..."
-    # Alpine non usa NetworkManager, si configura interfaces
     cat <<EOF | sudo tee /etc/network/interfaces
 auto lo
 iface lo inet loopback
@@ -22,46 +33,34 @@ auto ens18
 iface ens18 inet static
     address 192.168.1.201
     netmask 255.255.255.0
-    gateway 192.168.1.1
+    gateway 192.168.1.254
 EOF
-    # Imposta i DNS
     echo -e "nameserver 192.168.1.254\nnameserver 8.8.8.8\nnameserver 8.8.4.4" | sudo tee /etc/resolv.conf
     sudo /etc/init.d/networking restart
 
     echo "Installazione strumenti di sviluppo Alpine..."
     sudo apk update
-    # alpine-sdk è l'equivalente di build-essential e contiene abuild per fare i pacchetti .apk
     sudo apk add alpine-sdk go
 
 elif [ "$FORGE" == "arch" ]; then
     echo "Impostazione rete statica Arch tramite systemd-networkd (192.168.1.202)..."
-    
-    # Rimuove eventuali configurazioni vecchie per evitare conflitti
     sudo rm -f /etc/systemd/network/*.network
-    
-    # Crea la directory nel caso non esista
     sudo mkdir -p /etc/systemd/network/
 
-    # Forgia il file di configurazione per ens18
     cat <<EOF | sudo tee /etc/systemd/network/20-ens18.network
 [Match]
 Name=ens18
 
 [Network]
 Address=192.168.1.202/24
-Gateway=192.168.1.1
+Gateway=192.168.1.254
 DNS=192.168.1.254
 DNS=8.8.8.8
 EOF
 
-    # Assicura che i servizi nativi di systemd siano attivati
     sudo systemctl enable --now systemd-networkd
     sudo systemctl enable --now systemd-resolved
-
-    # Collega il risolutore DNS
     sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-
-    # Applica la configurazione
     sudo systemctl restart systemd-networkd
 
     echo "Installazione strumenti di sviluppo Arch..."
@@ -69,7 +68,6 @@ EOF
     
 elif [ "$FORGE" == "debian" ]; then
     echo "Impostazione rete statica Debian (192.168.1.203)..."
-    # Le versioni server di Debian usano interfaces.
     cat <<EOF | sudo tee /etc/network/interfaces
 source /etc/network/interfaces.d/*
 
@@ -80,7 +78,7 @@ allow-hotplug ens18
 iface ens18 inet static
     address 192.168.1.203
     netmask 255.255.255.0
-    gateway 192.168.1.1
+    gateway 192.168.1.254
     dns-nameservers 192.168.1.254 8.8.8.8 8.8.4.4
 EOF
     sudo systemctl restart networking
@@ -94,7 +92,7 @@ elif [ "$FORGE" == "fedora" ]; then
     sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
       ipv4.method manual \
       ipv4.addresses 192.168.1.204/24 \
-      ipv4.gateway 192.168.1.1 \
+      ipv4.gateway 192.168.1.254 \
       ipv4.dns "192.168.1.254 8.8.8.8 8.8.4.4"
     sudo nmcli con up "ens18"
 
@@ -106,7 +104,7 @@ elif [ "$FORGE" == "opensuse" ]; then
     sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
       ipv4.method manual \
       ipv4.addresses 192.168.1.205/24 \
-      ipv4.gateway 192.168.1.1 \
+      ipv4.gateway 192.168.1.254 \
       ipv4.dns "192.168.1.254 8.8.8.8 8.8.4.4"
     sudo nmcli con up "ens18"
 
@@ -114,20 +112,32 @@ elif [ "$FORGE" == "opensuse" ]; then
     sudo zypper install -y go rpm-build rpmdevtools -t pattern devel_basis
 
 elif [ "$FORGE" == "manjaro" ]; then
-    echo "Impostazione rete statica Manjaro (192.168.1.206)..."
-    sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
-      ipv4.method manual \
-      ipv4.addresses 192.168.1.206/24 \
-      ipv4.gateway 192.168.1.1 \
-      ipv4.dns "192.168.1.254 8.8.8.8 8.8.4.4"
-    sudo nmcli con up "ens18"
+    echo "Impostazione rete statica Arch tramite systemd-networkd (192.168.1.206)..."
+    sudo rm -f /etc/systemd/network/*.network
+    sudo mkdir -p /etc/systemd/network/
+
+    cat <<EOF | sudo tee /etc/systemd/network/20-ens18.network
+[Match]
+Name=ens18
+
+[Network]
+Address=192.168.1.206/24
+Gateway=192.168.1.254
+DNS=192.168.1.254
+DNS=8.8.8.8
+EOF
+
+    sudo systemctl enable --now systemd-networkd
+    sudo systemctl enable --now systemd-resolved
+    sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+    sudo systemctl restart systemd-networkd
 
     echo "Installazione strumenti di sviluppo Manjaro..."
     sudo pacman -Sy --noconfirm base-devel go
 
 else
-    echo "❌ Errore: Fucina sconosciuta '$FORGE'."
+    echo "❌ Errore: Fucina '$FORGE' non supportata da questo script."
     exit 1
 fi
 
-echo "✅ Ripristino completato con successo!"
+echo "✅ Autoconfigurazione completata con successo! La fucina è pronta."
