@@ -46,7 +46,7 @@ push_to_vm() {
         --exclude='*.o' \
         --exclude='*.a' \
         --exclude='alpine-build/' \
-        "$HOME/oa-tools/" "artisan@${target_ip}:/home/artisan/oa-tools/"
+        "$HOME/forge/penguins-eggs/" "artisan@${target_ip}:/home/artisan/penguins-eggs/"
         
     echo "✅ Sincronizzazione completata su $target_name!"
 }

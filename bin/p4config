@@ -32,8 +32,10 @@ check_ssh_keys() {
         echo " Ti verrà chiesta la password. Per eliminare definitivamente questa"
         echo " scocciatura, interrompi (Ctrl+C) e lancia questi comandi una sola volta:"
         echo ""
-        echo "   1. Genera la chiave (se non l'hai fatto): ssh-keygen -t ed25519"
-        echo "   2. Inviala alla macchina remota:          ssh-copy-id ${target_user}@${target_ip}"
+        echo "# Genera la chiave (se non l'hai fatto): "
+        ecgi "ssh-keygen -t ed25519"
+        echo "# Inviala alla macchina remota: "
+        echo "ssh-copy-id ${target_user}@${target_ip}"
         echo "=========================================================================="
         echo ""
         sleep 2
