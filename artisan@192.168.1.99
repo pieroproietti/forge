@@ -29,8 +29,8 @@ if [ "$FORGE" == "alpine" ]; then
 auto lo
 iface lo inet loopback
 
-auto eth0
-iface eth0 inet static
+auto ens18
+iface ens18 inet static
     address 192.168.1.201
     netmask 255.255.255.0
     gateway 192.168.1.254
