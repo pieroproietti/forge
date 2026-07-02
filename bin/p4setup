@@ -17,7 +17,7 @@ mkdir -p "$COMPLETION_DIR"
 echo "📦 Generazione della logica di autocompletamento..."
 
 cat << 'EOF' > "$MASTER_PATH"
-# Autocompletamento Bash per la suite di orchestrazione p4 (oa-tools)
+# Autocompletamento Bash per la suite di orchestrazione p4 (penguins-eggs)
 
 _p4_suite_completion() {
     # Parola corrente che l'utente sta digitando

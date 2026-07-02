@@ -1,6 +1,6 @@
 # g4tools: Interfaccia uomo-macchina per anziani del Terminale (e smemorati)
 
-I file presenti in questa cartella **non sono indispensabili** per il funzionamento, la compilazione o la rimasterizzazione di `oa-tools`. Il core del progetto vive, si gestisce e si compila benissimo anche senza di essi.
+I file presenti in questa cartella **non sono indispensabili** per il funzionamento, la compilazione o la rimasterizzazione di `penguins-eggs`. Il core del progetto vive, si gestisce e si compila benissimo anche senza di essi.
 
 Allora perché sono qui? 
 
@@ -10,7 +10,7 @@ Sono nati per un'esigenza puramente umana: fungere da ponte e semplificare la vi
 
 ### 🛠️ La Suite di Orchestrazione p4 (per proxmox)
 
-Per gestire l'ambiente di sviluppo nativo su Proxmox senza l'overhead di Vagrant, `oa-tools` include la suite **p4** (Proxmox 4). Questo set di comandi permette di orchestrare, sincronizzare e controllare le *fucine* di test (Debian, Arch, Fedora, Manjaro) direttamente dal terminale locale.
+Per gestire l'ambiente di sviluppo nativo su Proxmox senza l'overhead di Vagrant, `penguins-eggs` include la suite **p4** (Proxmox 4). Questo set di comandi permette di orchestrare, sincronizzare e controllare le *fucine* di test (Debian, Arch, Fedora, Manjaro) direttamente dal terminale locale.
 
 * **`p4autocomplete`**
   Installa l'autocompletamento Bash per l'intera suite nello spazio utente locale (`~/.local/share/bash-completion`). Permette di usare il tasto `TAB` per completare dinamicamente i comandi e i nomi delle distribuzioni target.
@@ -62,6 +62,6 @@ Per fare in modo che il tuo terminale riconosca automaticamente tutti i comandi 
 # Forza il layout della tastiera italiana all'apertura del terminale
 setxkbmap it
 
-# Aggiunge la cartella bin del monorepo oa-tools al PATH dell'utente
+# Aggiunge la cartella bin del monorepo penguins-eggs al PATH dell'utente
 export PATH="$HOME/forge/bin:$PATH"
 ```
