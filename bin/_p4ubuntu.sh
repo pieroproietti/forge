@@ -16,9 +16,8 @@ network:
           via: 192.168.1.254
       nameservers:
         addresses:
-          - 192.168.1.254
           - 8.8.8.8
-          - 8.8.4.4
+          - 1.1.1.1
 EOF
 
 sudo chmod 600 /etc/netplan/01-static-ip.yaml

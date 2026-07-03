@@ -10,7 +10,7 @@ iface ens18 inet static
     address 192.168.1.$VM_ID_debian
     netmask 255.255.255.0
     gateway 192.168.1.254
-    dns-nameservers 192.168.1.254 8.8.8.8 8.8.4.4
+    dns-nameservers 8.8.8.8 1.1.1.1
 EOF
 sudo systemctl restart networking
 

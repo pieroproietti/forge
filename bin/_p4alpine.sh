@@ -9,7 +9,7 @@ iface eth0 inet static
     netmask 255.255.255.0
     gateway 192.168.1.254
 EOF
-echo -e "nameserver 192.168.1.254\nnameserver 8.8.8.8\nnameserver 8.8.4.4" | sudo tee /etc/resolv.conf
+echo -e "nameserver 8.8.8.8\nnameserver 1.1.1.1" | sudo tee /etc/resolv.conf
 sudo /etc/init.d/networking restart
 
 echo "Installazione strumenti di sviluppo Alpine..."
