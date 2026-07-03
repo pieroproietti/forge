@@ -2,16 +2,15 @@
 PVE_NODE="father"              # Il nome del tuo nodo Proxmox
 PVE_TARGET="root@192.168.1.2"  # IP del Proxmox padre (con chiavi SSH già scambiate)
 
-# Mappatura Fucine (VMID:Nome)
-# Struttura: VM_ID_nome="VMID"
+# Mappatura (VMID:Nome)
 VM_ID_mother="200"
 VM_ID_alpine="201"
 VM_ID_arch="202"
 VM_ID_debian="203"
-VM_ID_fedora="204"
-VM_ID_manjaro="205"
-VM_ID_opensuse="206"
-VM_ID_devuan="207"
+VM_ID_devuan="204"
+VM_ID_fedora="205"
+VM_ID_manjaro="206"
+VM_ID_opensuse="207"
 VM_ID_ubuntu="208"
 
 
