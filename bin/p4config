@@ -3,7 +3,7 @@ PVE_NODE="father"              # Il nome del tuo nodo Proxmox
 PVE_TARGET="root@192.168.1.2"  # IP del Proxmox padre (con chiavi SSH già scambiate)
 
 # Mappatura (VMID:Nome)
-VM_ID_mother="200"
+VM_ID_mother="100"
 VM_ID_alpine="201"
 VM_ID_arch="202"
 VM_ID_debian="203"
