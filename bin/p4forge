@@ -11,7 +11,7 @@ else
     exit 1
 fi
 
-# 2. Normalizzazione del nome della fucina
+# 2. Normalizzazione del nome forge
 # Gestisce casi speciali come "opensuse-tumbleweed" o "opensuse-leap"
 if [[ "$ID" == *"opensuse"* ]] || [[ "$ID_LIKE" == *"suse"* ]]; then
     FORGE="opensuse"
@@ -24,14 +24,14 @@ echo "⚙️ Avvio autoconfigurazione fucina per: $FORGE..."
 
 # 3. Applicazione delle configurazioni specifiche
 if [ "$FORGE" == "alpine" ]; then
-    echo "Impostazione rete statica Alpine (192.168.1.201)..."
+    echo "Impostazione rete statica Alpine (192.168.1.$VM_ID_alpine)..."
     cat <<EOF | sudo tee /etc/network/interfaces
 auto lo
 iface lo inet loopback
 
 auto eth0
 iface eth0 inet static
-    address 192.168.1.201
+    address 192.168.1.$VM_ID_alpine
     netmask 255.255.255.0
     gateway 192.168.1.254
 EOF
@@ -43,7 +43,7 @@ EOF
     sudo apk add alpine-sdk go
 
 elif [ "$FORGE" == "arch" ]; then
-    echo "Impostazione rete statica Arch tramite NetworkManager (192.168.1.202)..."
+    echo "Impostazione rete statica Arch tramite NetworkManager (192.168.1.$VM_ID_arch)..."
     
     # Assicurati che NetworkManager sia attivo
     sudo systemctl enable --now NetworkManager
@@ -53,7 +53,7 @@ elif [ "$FORGE" == "arch" ]; then
     sudo nmcli con delete "ens18" 2>/dev/null || true
     sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
       ipv4.method manual \
-      ipv4.addresses 192.168.1.202/24 \
+      ipv4.addresses $VM_ID_arch/24 \
       ipv4.gateway 192.168.1.254 \
       ipv4.dns "192.168.1.254 8.8.8.8"
       
@@ -63,7 +63,7 @@ elif [ "$FORGE" == "arch" ]; then
     sudo pacman -Sy --noconfirm base-devel go bind-tools
         
 elif [ "$FORGE" == "debian" ]; then
-    echo "Impostazione rete statica Debian (192.168.1.203)..."
+    echo "Impostazione rete statica Debian (192.168.1.$VM_ID_debian)..."
     cat <<EOF | sudo tee /etc/network/interfaces
 source /etc/network/interfaces.d/*
 
@@ -72,7 +72,7 @@ iface lo inet loopback
 
 allow-hotplug ens18
 iface ens18 inet static
-    address 192.168.1.203
+    address 192.168.1.$VM_ID_debian
     netmask 255.255.255.0
     gateway 192.168.1.254
     dns-nameservers 192.168.1.254 8.8.8.8 8.8.4.4
@@ -84,10 +84,10 @@ EOF
     sudo apt-get install -y build-essential golang dpkg-dev
 
 elif [ "$FORGE" == "fedora" ]; then
-    echo "Impostazione rete statica Fedora (192.168.1.204)..."
+    echo "Impostazione rete statica Fedora (192.168.1.$VM_ID_fedora)..."
     sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
       ipv4.method manual \
-      ipv4.addresses 192.168.1.204/24 \
+      ipv4.addresses 192.168.1.$VM_ID_fedora/24 \
       ipv4.gateway 192.168.1.254 \
       ipv4.dns "192.168.1.254 8.8.8.8 8.8.4.4"
     sudo nmcli con up "ens18"
@@ -96,7 +96,7 @@ elif [ "$FORGE" == "fedora" ]; then
     sudo dnf install -y go @development-tools rpm-build rpmdevtools
 
 elif [ "$FORGE" == "manjaro" ]; then
-    echo "Impostazione rete statica Arch tramite systemd-networkd (192.168.1.206)..."
+    echo "Impostazione rete statica Arch tramite systemd-networkd (192.168.1.$VM_ID_manjaro)..."
     sudo rm -f /etc/systemd/network/*.network
     sudo mkdir -p /etc/systemd/network/
 
@@ -105,7 +105,7 @@ elif [ "$FORGE" == "manjaro" ]; then
 Name=ens18
 
 [Network]
-Address=192.168.1.205/24
+Address=192.168.1.$VM_ID_manjaro/24
 Gateway=192.168.1.254
 DNS=192.168.1.254
 DNS=8.8.8.8
@@ -120,10 +120,10 @@ EOF
     sudo pacman -Sy --noconfirm base-devel go
 
 elif [ "$FORGE" == "opensuse" ]; then
-    echo "Impostazione rete statica openSUSE (192.168.1.205)..."
+    echo "Impostazione rete statica openSUSE (192.168.1.$VM_ID_opensuse)..."
     sudo nmcli con add type ethernet ifname ens18 con-name ens18 \
       ipv4.method manual \
-      ipv4.addresses 192.168.1.205/24 \
+      ipv4.addresses 192.168.1.$VM_ID_opensuse/24 \
       ipv4.gateway 192.168.1.254 \
       ipv4.dns "192.168.1.254 8.8.8.8 8.8.4.4"
     sudo nmcli con up "ens18"
@@ -131,6 +131,63 @@ elif [ "$FORGE" == "opensuse" ]; then
     echo "Installazione strumenti di sviluppo openSUSE..."
     sudo zypper install -y go rpm-build rpmdevtools -t pattern devel_basis
 
+elif [ "$FORGE" == "devuan" ]; then
+    echo "Impostazione rete statica Devuan (192.168.1.$VM_ID_devuan)..."
+    cat <<EOF | sudo tee /etc/network/interfaces
+source /etc/network/interfaces.d/*
+
+auto lo
+iface lo inet loopback
+
+allow-hotplug ens18
+iface ens18 inet static
+    address 192.168.1.$VM_ID_devuan
+    netmask 255.255.255.0
+    gateway 192.168.1.254
+    dns-nameservers 192.168.1.254 8.8.8.8 8.8.4.4
+EOF
+    sudo systemctl restart networking
+
+    echo "Installazione strumenti di sviluppo Debian..."
+    sudo apt-get update
+    sudo apt-get install -y build-essential golang dpkg-dev
+
+elif [ "$FORGE" == "ubuntu" ]; then
+    echo "Impostazione rete statica Ubuntu (192.168.1.$VM_ID_ubuntu) via Netplan..."
+    
+    # Rimuove eventuali vecchie configurazioni di default per evitare conflitti
+    sudo rm -f /etc/netplan/*.yaml
+    
+    # Crea la nuova configurazione Netplan
+    cat <<EOF | sudo tee /etc/netplan/01-static-ip.yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens18:
+      dhcp4: no
+      addresses:
+        - 192.168.1.$VM_ID_ubuntu/24
+      routes:
+        - to: default
+          via: 192.168.1.254
+      nameservers:
+        addresses:
+          - 192.168.1.254
+          - 8.8.8.8
+          - 8.8.4.4
+EOF
+
+    # Netplan richiede permessi restrittivi sui suoi file
+    sudo chmod 600 /etc/netplan/01-static-ip.yaml
+    
+    # Applica la configurazione immediatamente (sostituisce systemctl restart networking)
+    sudo netplan apply
+
+    echo "Installazione strumenti di sviluppo Ubuntu..."
+    sudo apt-get update
+    sudo apt-get install -y build-essential golang dpkg-dev
+    
 else
     echo "❌ Errore: Fucina '$FORGE' non supportata da questo script."
     exit 1
