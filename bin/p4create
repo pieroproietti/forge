@@ -1,8 +1,9 @@
 #!/bin/bash
 # Uso: p4create 
 
-# 1. Carica la configurazione globale
-CONFIG_FILE="$HOME/forge/bin/p4config"
+# Trova la cartella dove si trova questo script principale
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+CONFIG_FILE="${SCRIPT_DIR}/p4config"
 if [ ! -f "$CONFIG_FILE" ]; then 
     echo "❌ Errore: p4config non trovato in $CONFIG_FILE!"
     exit 1

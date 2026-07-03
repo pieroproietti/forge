@@ -1,8 +1,8 @@
 #!/bin/bash
 # Uso: p4push [debian|arch|manjaro|fedora|opensuse|alpine|all]
 
-# 1. Carica la configurazione globale e le funzioni libreria
-CONFIG_FILE="$HOME/forge/bin/p4config"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+CONFIG_FILE="${SCRIPT_DIR}/p4config"
 if [ ! -f "$CONFIG_FILE" ]; then 
     echo "❌ Errore: File p4config non trovato in $CONFIG_FILE"
     exit 1
