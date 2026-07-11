@@ -1,0 +1,3 @@
+# ethers.csv - mapping statici MAC->IP senza hostname, per pve-vnet.sh (--ethers-file)
+# formato: MAC,IP
+
