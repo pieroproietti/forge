@@ -33,7 +33,7 @@ _p4_suite_completion() {
 }
 
 # Lega la funzione di completamento a TUTTI gli script della suite
-complete -F _p4_suite_completion p4config p4create p4pull p4ssh p4start
+complete -F _p4_suite_completion p4config p4create p4push p4ssh p4start
 EOF
 
 chmod 644 "$MASTER_PATH"
