@@ -17,7 +17,7 @@ if [ -z "$DISTRO" ]; then
     exit 1
 fi
 
-VAR_NAME="VM_ID_${DISTRO}"
+VAR_NAME="VM_ID_${DISTRO^^}"
 VMID=${!VAR_NAME}
 
 if [ -z "$VMID" ]; then 
@@ -26,7 +26,7 @@ if [ -z "$VMID" ]; then
 fi
 
 # 2. Calcoliamo l'IP bersaglio
-TARGET_IP="192.168.1.${VMID}"
+TARGET_IP="10.99.0.${VMID}"
 
 echo "🔌 Preparazione connessione a $DISTRO ($TARGET_IP)..."
 

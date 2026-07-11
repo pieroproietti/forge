@@ -3,16 +3,24 @@ PVE_NODE="father"              # Il nome del tuo nodo Proxmox
 PVE_TARGET="root@192.168.1.2"  # IP del Proxmox padre (con chiavi SSH già scambiate)
 
 # Mappatura (VMID:Nome)
-VM_ID_mother="100"
-VM_ID_alpine="201"
-VM_ID_arch="202"
-VM_ID_debian="203"
-VM_ID_devuan="204"
-VM_ID_fedora="205"
-VM_ID_manjaro="206"
-VM_ID_opensuse="207"
-VM_ID_ubuntu="208"
+VM_ID_ALPINE="201"
+VM_ID_ARCH="202"
+VM_ID_DEBIAN="203"
+VM_ID_DEVUAN="204"
+VM_ID_FEDORA="205"
+VM_ID_MANJARO="206"
+VM_ID_OPENSUSE="207"
+VM_ID_UBUNTU="208"
 
+# Mappatura (VM:MAC:NOME) - MAC inventati in modo sequenziale!
+VM_MAC_ALPINE="BC:24:11:00:02:01,10.99.0.201"
+VM_MAC_ARCH="BC:24:11:00:02:02,10.99.0.202"
+VM_MAC_DEBIAN="BC:24:11:00:02:03,10.99.0.203"
+VM_MAC_DEVUAN="BC:24:11:00:02:04,10.99.0.204"
+VM_MAC_FEDORA="BC:24:11:00:02:05,10.99.0.205"
+VM_MAC_MANJARO="BC:24:11:00:02:06,10.99.0.206"
+VM_MAC_OPENSUSE="BC:24:11:00:02:07,10.99.0.207"
+VM_MAC_UBUNTU="BC:24:11:00:02:08,10.99.0.208"
 
 # Nome dello snapshot "vergine" per i rollback
 SNAPSHOT_NAME="virgin"

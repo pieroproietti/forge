@@ -18,7 +18,7 @@ fi
 
 create_vm() {
     local target_name=$1
-    local var_name="VM_ID_${target_name}"
+    local var_name="VM_ID_${target_name^^}"
     local vmid=${!var_name}
 
     if [ -z "$vmid" ]; then 
@@ -39,7 +39,7 @@ create_vm() {
       --memory 2048 \
       --sockets 2 --cores 2 \
       --cpu host \
-      --net0 virtio,bridge=vmbr0,firewall=1 \
+      --net0 virtio,bridge=eggsnet,firewall=1 \
       --scsihw virtio-scsi-pci \
       --scsi0 ${STORAGE_POOL}:${DISK_SIZE},discard=on \
       --boot order=scsi0 \

@@ -17,16 +17,6 @@ else
     FORGE=$ID
 fi
 
-# Mappatura degli ID finali per gli IP
-VM_ID_alpine="201"
-VM_ID_arch="202"
-VM_ID_debian="203"
-VM_ID_devuan="204"
-VM_ID_fedora="205"
-VM_ID_manjaro="206"
-VM_ID_opensuse="207"
-VM_ID_ubuntu="208"
-
 echo "🛠️ Sistema rilevato: $PRETTY_NAME"
 echo "⚙️ Avvio autoconfigurazione fucina per: $FORGE..."
 

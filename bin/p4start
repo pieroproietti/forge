@@ -18,7 +18,7 @@ if [ -z "$DISTRO" ]; then
     exit 1
 fi
 
-VAR_NAME="VM_ID_${DISTRO}"
+VAR_NAME="VM_ID_${DISTRO^^}"
 VMID=${!VAR_NAME}
 
 if [ -z "$VMID" ]; then

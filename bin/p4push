@@ -23,8 +23,8 @@ push_to_vm() {
         return
     fi
     
-    local var_name="VM_ID_${target_name}"
-    local vmid=${!var_name}
+    local var_name="VM_ID_${target_name^^}"
+    local vmid=${!var_name^^}
 
     if [ -z "$vmid" ]; then 
         echo "❌ Distro '$target_name' non configurata in p4config!"
@@ -32,7 +32,7 @@ push_to_vm() {
     fi
 
     # 2. Calcoliamo l'IP al volo usando il VMID (es. 201 -> 192.168.1.201)
-    local target_ip="192.168.1.${vmid}"
+    local target_ip="10.99.0.${vmid}"
 
     echo "🚀 Sincronizzo oa-tools su $target_name ($target_ip)..."
     
