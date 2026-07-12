@@ -2,25 +2,49 @@
 PVE_NODE="father"              # Il nome del tuo nodo Proxmox
 PVE_TARGET="root@192.168.1.2"  # IP del Proxmox padre (con chiavi SSH già scambiate)
 
-# Mappatura (VMID:Nome)
-VM_ID_ALPINE="201"
-VM_ID_ARCH="202"
-VM_ID_DEBIAN="203"
-VM_ID_DEVUAN="204"
-VM_ID_FEDORA="205"
-VM_ID_MANJARO="206"
-VM_ID_OPENSUSE="207"
-VM_ID_UBUNTU="208"
+#!/bin/bash
 
-# Mappatura (VM:MAC:NOME) - MAC inventati in modo sequenziale!
-VM_MAC_ALPINE="BC:24:11:00:02:01,10.99.0.201"
-VM_MAC_ARCH="BC:24:11:00:02:02,10.99.0.202"
-VM_MAC_DEBIAN="BC:24:11:00:02:03,10.99.0.203"
-VM_MAC_DEVUAN="BC:24:11:00:02:04,10.99.0.204"
-VM_MAC_FEDORA="BC:24:11:00:02:05,10.99.0.205"
-VM_MAC_MANJARO="BC:24:11:00:02:06,10.99.0.206"
-VM_MAC_OPENSUSE="BC:24:11:00:02:07,10.99.0.207"
-VM_MAC_UBUNTU="BC:24:11:00:02:08,10.99.0.208"
+# 1. I materiali di partenza (senza spazi attorno all'=)
+IMN_ALPINE="BC:24:11:00:02:01,10.99.0.201,forge-alpine"
+IMN_ARCH="BC:24:11:00:02:02,10.99.0.202,forge-arch"
+IMN_DEBIAN="BC:24:11:00:02:03,10.99.0.203,forge-debian"
+IMN_DEVUAN="BC:24:11:00:02:04,10.99.0.204,forge-devuan"
+IMN_FEDORA="BC:24:11:00:02:05,10.99.0.205,forge-fedora"
+IMN_MANJARO="BC:24:11:00:02:06,10.99.0.206,forge-manjaro"
+IMN_OPENSUSE="BC:24:11:00:02:07,10.99.0.207,forge-opensuse"
+IMN_UBUNTU="BC:24:11:00:02:08,10.99.0.208,forge-ubuntu"
+
+# 2. Creazione della lista delle distribuzioni
+DISTROS=("ALPINE" "ARCH" "DEBIAN" "DEVUAN" "FEDORA" "MANJARO" "OPENSUSE" "UBUNTU")
+
+echo "Costruzione delle variabili in corso..."
+echo "----------------------------------------"
+
+# 3. Il ciclo di catena di montaggio
+for distro in "${DISTROS[@]}"; do
+    # Puntiamo al nome della variabile sorgente (es. IMN_ALPINE) e ne estraiamo il valore
+    var_source="IMN_${distro}"
+    string_value="${!var_source}"
+
+    # Spezziamo la stringa in tre pezzi usando la virgola come separatore (IFS)
+    IFS=',' read -r mac ip name <<< "$string_value"
+
+    # Estraiamo l'ID prendendo solo l'ultima parte dell'IP (dopo l'ultimo punto)
+    id="${ip##*.}"
+
+    # Dichiariamo dinamicamente le nuove variabili globali per l'uso nello script
+    declare "VM_ID_${distro}=${id}"
+    declare "VM_MAC_${distro}=${mac}"
+    declare "VM_NAME_${distro}=${name}"
+
+    # --- Stampa di collaudo ---
+    echo "=== ${distro} ==="
+    # Uso l'indirezione per stampare il valore appena assegnato
+    var_out_id="VM_ID_${distro}"; echo "VM_ID_${distro}=${!var_out_id}"
+    var_out_mac="VM_MAC_${distro}"; echo "VM_MAC_${distro}=${!var_out_mac}"
+    var_out_name="VM_NAME_${distro}"; echo "VM_NAME_${distro}=${!var_out_name}"
+    echo ""
+done
 
 # Nome dello snapshot "vergine" per i rollback
 SNAPSHOT_NAME="virgin"
@@ -42,7 +66,7 @@ check_ssh_keys() {
         echo " scocciatura, interrompi (Ctrl+C) e lancia questi comandi una sola volta:"
         echo ""
         echo "# Genera la chiave (se non l'hai fatto):"
-        ecgi "ssh-keygen -t ed25519"
+        echo "ssh-keygen -t ed25519"
         echo ""
         echo "# Inviala alla macchina remota: "
         echo "ssh-copy-id ${target_user}@${target_ip}"

@@ -19,7 +19,10 @@ fi
 create_vm() {
     local target_name=$1
     local var_name="VM_ID_${target_name^^}"
+    local var_mac="VM_MAC_${target_name^^}" # Sistemato il refuso delle doppie virgolette
+    
     local vmid=${!var_name}
+    local mac_value=${!var_mac} # Estrazione dinamica del MAC address dal file di configurazione
 
     if [ -z "$vmid" ]; then 
         echo "❌ Distro '$target_name' non configurata in p4config!"
@@ -28,18 +31,26 @@ create_vm() {
 
     echo "🏗️  Creazione VM Master per $target_name (VMID: $vmid) sul nodo padre ($PVE_NODE)..."
 
+    # Costruzione dinamica dell'opzione di rete
+    local NET_CONFIG="virtio,bridge=eggsnet,firewall=1"
+    if [ -n "$mac_value" ]; then
+        echo "🏷️  Assegnazione MAC address statico: $mac_value"
+        NET_CONFIG="${NET_CONFIG},macaddr=${mac_value}"
+    else
+        echo "⚠️  Nessun MAC trovato in p4config per $target_name, Proxmox ne genererà uno casuale."
+    fi
+
     # Allineato con lo storage pool ZFS attivo sul padre
     local STORAGE_POOL="father-zfs" 
-    DISK_SIZE="16"
+    local DISK_SIZE="16"
 
-    # 2. Invocazione remota tramite SSH a Proxmox
-    # Abbiamo integrato qxl, seriale, firewall e il mount di virtfs
+    # Invocazione remota tramite SSH a Proxmox
     ssh "$PVE_TARGET" "qm create $vmid \
       --name forge-$target_name \
       --memory 2048 \
       --sockets 2 --cores 2 \
       --cpu host \
-      --net0 virtio,bridge=eggsnet,firewall=1 \
+      --net0 ${NET_CONFIG} \
       --scsihw virtio-scsi-pci \
       --scsi0 ${STORAGE_POOL}:${DISK_SIZE},discard=on \
       --boot order=scsi0 \
@@ -54,7 +65,7 @@ create_vm() {
     echo "   qm set $vmid --ide2 local:iso/NOME_DELLA_TUA_ISO.iso,media=cdrom"
 }
 
-# 3. Supporto per la creazione massiva (Legge dinamicamente p4config)
+# Supporto per la creazione massiva (Legge dinamicamente p4config)
 if [ "$DISTRO" == "all" ]; then
     DISTROS=$(grep -oP '(?<=^VM_ID_)[^=]+' "$CONFIG_FILE")
     for d in $DISTROS; do

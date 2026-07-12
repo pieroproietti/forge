@@ -1,0 +1,36 @@
+#!/bin/bash
+# Uso: p4cp [mother|debian|arch|manjaro|fedora|opensuse|alpine]
+
+# Trova la cartella dove si trova questo script principale
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+CONFIG_FILE="${SCRIPT_DIR}/p4config"
+if [ ! -f "$CONFIG_FILE" ]; then 
+    echo "❌ Errore: File p4config non trovato in $CONFIG_FILE"
+    exit 1
+fi
+source "$CONFIG_FILE"
+
+DISTRO=$1
+if [ -z "$DISTRO" ]; then
+    echo "Uso: $0 [distro]"
+    # Mostriamo rapidamente quali distro sono disponibili
+    echo "Disponibili: $(grep -oP '(?<=^VM_ID_)[^=]+' "$CONFIG_FILE" | tr '\n' ' ')"
+    exit 1
+fi
+
+VAR_NAME="VM_ID_${DISTRO^^}"
+VMID=${!VAR_NAME}
+
+if [ -z "$VMID" ]; then 
+    echo "❌ Distro '$DISTRO' non configurata in p4config!"
+    exit 1
+fi
+
+# 2. Calcoliamo l'IP bersaglio
+TARGET_IP="10.99.0.${VMID}"
+
+# 3. --- RICHIAMO LA LIBRERIA CONDIVISA ---
+check_ssh_keys "$TARGET_IP"
+
+# 4. Connessione SSH interattiva
+scp $SCRIPT_DIR/set_$1.sh "artisan@${TARGET_IP}:/home/artisan"
