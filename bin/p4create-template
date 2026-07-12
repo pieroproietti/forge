@@ -1,0 +1,131 @@
+#!/bin/bash
+# Uso: p4create-template [distro|all]
+# Esempio: p4create-template debian
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+CONFIG_FILE="${SCRIPT_DIR}/p4config"
+
+if [ ! -f "$CONFIG_FILE" ]; then 
+    echo "❌ Errore: p4config non trovato in $CONFIG_FILE!"
+    exit 1
+fi
+source "$CONFIG_FILE"
+
+DISTRO=$1
+if [ -z "$DISTRO" ]; then
+    echo "Uso: $0 [distro|all]"
+    echo "Distro supportate: alpine, arch, debian, devuan, fedora, manjaro, opensuse, ubuntu"
+    exit 1
+fi
+
+create_template() {
+    local target=$1
+    local template_id
+    local image_url
+    local image_file
+
+    case "$target" in
+        alpine)
+            template_id=9001
+            image_url="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/x86_64/alpine-cloud-image-3.20.2-x86_64.qcow2"
+            image_file="alpine-cloud-image-3.20.2-x86_64.qcow2"
+            ;;
+        arch)
+            template_id=9002
+            image_url="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
+            image_file="Arch-Linux-x86_64-cloudimg.qcow2"
+            ;;
+        debian)
+            template_id=9003
+            
+            image_url="https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
+            image_file="debian-13-genericcloud-amd64.qcow2"
+            ;;
+        devuan)
+            template_id=9004
+            image_url="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
+            image_file="debian-12-genericcloud-amd64.qcow2"
+            ;;
+        fedora)
+            template_id=9005
+            image_url="https://download.fedoraproject.org/pub/fedora/linux/releases/40/Cloud/x86_64/images/Fedora-Cloud-Base-40-1.14.x86_64.qcow2"
+            image_file="Fedora-Cloud-Base-40-1.14.x86_64.qcow2"
+            ;;
+        manjaro)
+            template_id=9006
+            image_url="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
+            image_file="Arch-Linux-x86_64-cloudimg.qcow2"
+            ;;
+        opensuse)
+            template_id=9007
+            image_url="https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6-JeOS.x86_64-OpenStack-Cloud.qcow2"
+            image_file="openSUSE-Leap-15.6-JeOS.x86_64-OpenStack-Cloud.qcow2"
+            ;;
+        ubuntu)
+            template_id=9008
+            image_url="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+            image_file="noble-server-cloudimg-amd64.img"
+            ;;
+        *)
+            echo "❌ Distro '$target' non supportata."
+            return
+            ;;
+    esac
+
+    echo "⚙️  Verifica presenza template $template_id (template-$target) su Proxmox..."
+    if ssh "$PVE_TARGET" "qm status $template_id" &>/dev/null; then
+        echo "⚠️  Avviso: Il Template ID $template_id esiste già su Proxmox."
+        read -p "Vuoi distruggerlo e ricrearlo? (s/N): " -r CONFIRM
+        if [[ ! "$CONFIRM" =~ ^[Ss]$ ]]; then
+            echo "Salto creazione per $target."
+            return
+        fi
+        echo "🗑️  Rimozione template esistente $template_id..."
+        ssh "$PVE_TARGET" "qm destroy $template_id"
+    fi
+
+    local tmp_dir="/var/tmp"
+    local pve_image_path="${tmp_dir}/${image_file}"
+
+    echo "📥 Download dell'immagine cloud per $target su Proxmox ($pve_image_path)..."
+    ssh "$PVE_TARGET" "wget -q --show-progress -O $pve_image_path $image_url"
+
+    echo "🏗️  Creazione VM shell $template_id per $target..."
+    ssh "$PVE_TARGET" "qm create $template_id --name template-$target --memory 2048 --cores 2 --cpu host --net0 virtio,bridge=vmbr0"
+
+    echo "💾 Importazione del disco cloud-init nello storage $PVE_STORAGE..."
+    ssh "$PVE_TARGET" "qm importdisk $template_id $pve_image_path $PVE_STORAGE"
+
+    echo "⚙️  Configurazione del controller disco e aggancio..."
+    # Configura e aggancia il disco importato
+    ssh "$PVE_TARGET" "qm set $template_id --scsihw virtio-scsi-pci --scsi0 ${PVE_STORAGE}:vm-${template_id}-disk-0,discard=on"
+
+    echo "💿 Aggiunta drive Cloud-Init..."
+    ssh "$PVE_TARGET" "qm set $template_id --ide2 ${PVE_STORAGE}:cloudinit"
+
+    echo "🖥️  Configurazione console seriale e VGA..."
+    ssh "$PVE_TARGET" "qm set $template_id --boot order=scsi0 --serial0 socket --vga serial0"
+
+    echo "📏 Ridimensionamento del disco a 20G..."
+    ssh "$PVE_TARGET" "qm disk resize $template_id scsi0 20G"
+
+    echo "🔒 Conversione in template..."
+    ssh "$PVE_TARGET" "qm template $template_id"
+
+    echo "🧹 Pulizia immagine temporanea..."
+    ssh "$PVE_TARGET" "rm -f $pve_image_path"
+
+    echo "✅ Template $template_id (template-$target) creato con successo!"
+}
+
+if [ "$DISTRO" == "all" ]; then
+    DISTROS=("alpine" "arch" "debian" "devuan" "fedora" "manjaro" "opensuse" "ubuntu")
+    for d in "${DISTROS[@]}"; do
+        echo "=========================================================================="
+        echo "🚀 Creazione template per $d"
+        echo "=========================================================================="
+        create_template "$d"
+    done
+else
+    create_template "$DISTRO"
+fi

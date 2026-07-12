@@ -22,11 +22,11 @@ echo "⚙️ Avvio autoconfigurazione fucina per: $FORGE..."
 
 # Trova la cartella dove si trova questo script principale
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-MODULE_FILE="${SCRIPT_DIR}/_p4${FORGE}.sh"
+MODULE_FILE="${SCRIPT_DIR}/set_${FORGE}.sh"
 
 # 3. Caricamento dinamico del modulo
 if [ -f "$MODULE_FILE" ]; then
-    echo "-> Caricamento modulo specifico: p4${FORGE}.sh"
+    echo "-> Esecuzione modulo specifico: set_${FORGE}.sh"
     source "$MODULE_FILE"
 else
     echo "❌ Errore: Nessun modulo di configurazione trovato per '$FORGE'."

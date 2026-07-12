@@ -9,7 +9,7 @@ MASTER_FILE="p4-suite"
 MASTER_PATH="$COMPLETION_DIR/$MASTER_FILE"
 
 # Comandi della suite
-COMMANDS=(p4create p4push p4ssh p4start)
+COMMANDS=(p4cp p4create p4create-template p4push p4ssh p4start)
 
 echo "🔨 Preparazione dell'ambiente in $COMPLETION_DIR..."
 mkdir -p "$COMPLETION_DIR"
@@ -33,7 +33,7 @@ _p4_suite_completion() {
 }
 
 # Lega la funzione di completamento a TUTTI gli script della suite
-complete -F _p4_suite_completion p4config p4create p4push p4ssh p4start
+complete -F _p4_suite_completion p4config p4cp p4create p4create-template p4push p4ssh p4start
 EOF
 
 chmod 644 "$MASTER_PATH"

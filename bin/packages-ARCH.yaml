@@ -1,0 +1,11 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - base-devel
+  - go
+  - rsync
+  - git
+  - openssh
+runcmd:
+  - systemctl enable --now sshd

@@ -16,30 +16,32 @@ if [ -z "$DISTRO" ]; then
 fi
 
 push_to_vm() {
-    local target_name=$1
+    # Forza subito la stringa in maiuscolo (es. debian -> DEBIAN)
+    local target_name=${1^^} 
     
     # Salvaguardia: evitiamo che la mother faccia un push su se stessa
-    if [ "$target_name" == "mother" ]; then 
+    if [ "$target_name" == "MOTHER" ]; then 
         return
     fi
     
-    local var_name="VM_ID_${target_name^^}"
-    local vmid=${!var_name^^}
+    # Puntiamo alla nuova variabile compatta
+    local var_source="VTMN_${target_name}"
+    local string_value=${!var_source}
 
-    if [ -z "$vmid" ]; then 
-        echo "❌ Distro '$target_name' non configurata in p4config!"
+    if [ -z "$string_value" ]; then 
+        echo "❌ Distro '$target_name' non configurata in p4config (VTMN_ mancante)!"
         return
     fi
 
-    # 2. Calcoliamo l'IP al volo usando il VMID (es. 201 -> 192.168.1.201)
-    local target_ip="10.99.0.${vmid}"
+    # Estraiamo tutti i parametri, prendendo l'IP reale dalla stringa
+    IFS=',' read -r vmid template_id mac target_ip vm_name <<< "$string_value"
 
-    echo "🚀 Sincronizzo oa-tools su $target_name ($target_ip)..."
+    echo "🚀 Sincronizzo oa-tools su $vm_name ($target_ip)..."
     
     # --- RICHIAMO LA LIBRERIA CONDIVISA ---
     check_ssh_keys "$target_ip"
     
-    # 3. Trasferimento incrementale e speculare
+    # Trasferimento incrementale e speculare
     rsync -avz --delete \
         --exclude='oa/oa' \
         --exclude='coa/coa' \
@@ -48,13 +50,13 @@ push_to_vm() {
         --exclude='alpine-build/' \
         "$HOME/forge/penguins-eggs/" "artisan@${target_ip}:/home/artisan/penguins-eggs/"
         
-    echo "✅ Sincronizzazione completata su $target_name!"
+    echo "✅ Sincronizzazione completata su $vm_name!"
 }
 
-# 4. Magia nera per il comando "all": troviamo le distro direttamente dal file
+# Magia nera aggiornata: cerchiamo le nuove variabili VTMN_
 if [ "$DISTRO" == "all" ]; then
-    # Estrae tutte le parole che seguono "VM_ID_" nel file p4config
-    DISTROS=$(grep -oP '(?<=^VM_ID_)[^=]+' "$CONFIG_FILE")
+    # Estrae tutte le parole che seguono "VTMN_" nel file p4config
+    DISTROS=$(grep -oP '(?<=^VTMN_)[^=]+' "$CONFIG_FILE")
     
     for d in $DISTROS; do
         push_to_vm "$d"

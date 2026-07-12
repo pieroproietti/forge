@@ -18,19 +18,23 @@ if [ -z "$DISTRO" ]; then
     exit 1
 fi
 
-VAR_NAME="VM_ID_${DISTRO^^}"
-VMID=${!VAR_NAME}
+# 2. Punta alla nuova stringa compatta
+VAR_NAME="VTMN_${DISTRO^^}"
+STRING_VALUE=${!VAR_NAME}
 
-if [ -z "$VMID" ]; then
-    echo "Errore: Distro '$DISTRO' non configurata in p4config!"
+if [ -z "$STRING_VALUE" ]; then 
+    echo "❌ Errore: Distro '$DISTRO' non configurata in p4config (VTMN_ mancante)!"
     exit 1
 fi
 
+# 3. Estrazione dei dati
+IFS=',' read -r vmid template_id mac target_ip vm_name <<< "$STRING_VALUE"
+
 # Se è stata passata una ISO, la agganciamo prima del boot
 if [ -n "$ISO_PATH" ]; then
-    echo "💿 Aggancio la ISO $ISO_PATH al lettore CD della VM $VMID..."
-    ssh "$PVE_TARGET" "qm set $VMID --ide2 ${ISO_PATH},media=cdrom"
+    echo "💿 Aggancio la ISO $ISO_PATH al lettore CD della VM $vmid..."
+    ssh "$PVE_TARGET" "qm set $vmid --ide2 ${ISO_PATH},media=cdrom"
 fi
 
-echo "🚀 Accensione fucina $DISTRO (VMID: $VMID) sul nodo $PVE_NODE..."
-ssh "$PVE_TARGET" "qm start $VMID"
+echo "🚀 Accensione fucina $DISTRO (VMID: $vmid) sul nodo $PVE_NODE..."
+ssh "$PVE_TARGET" "qm start $vmid"

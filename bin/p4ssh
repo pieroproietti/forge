@@ -1,8 +1,15 @@
 #!/bin/bash
-# Uso: p4ssh [mother|debian|arch|manjaro|fedora|opensuse|alpine]
+# Uso: p4ssh [debian|arch|manjaro|fedora|opensuse|alpine|ubuntu]
 
-# 1. Carica la configurazione globale e le funzioni libreria
-CONFIG_FILE="$HOME/forge/bin/p4config"
+# 1. Carica la configurazione globale
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+CONFIG_FILE="${SCRIPT_DIR}/p4config"
+
+# Fallback se lanciato da altre directory
+if [ ! -f "$CONFIG_FILE" ]; then 
+    CONFIG_FILE="$HOME/forge/bin/p4config"
+fi
+
 if [ ! -f "$CONFIG_FILE" ]; then 
     echo "❌ Errore: File p4config non trovato in $CONFIG_FILE"
     exit 1
@@ -12,27 +19,30 @@ source "$CONFIG_FILE"
 DISTRO=$1
 if [ -z "$DISTRO" ]; then
     echo "Uso: $0 [distro]"
-    # Mostriamo rapidamente quali distro sono disponibili
-    echo "Disponibili: $(grep -oP '(?<=^VM_ID_)[^=]+' "$CONFIG_FILE" | tr '\n' ' ')"
+    # Mostriamo rapidamente quali distro sono disponibili pescando da VTMN_
+    echo "Disponibili: $(grep -oP '(?<=^VTMN_)[^=]+' "$CONFIG_FILE" | tr '\n' ' ')"
     exit 1
 fi
 
-VAR_NAME="VM_ID_${DISTRO^^}"
-VMID=${!VAR_NAME}
+# 2. Punta alla nuova stringa compatta
+VAR_NAME="VTMN_${DISTRO^^}"
+STRING_VALUE=${!VAR_NAME}
 
-if [ -z "$VMID" ]; then 
-    echo "❌ Distro '$DISTRO' non configurata in p4config!"
+if [ -z "$STRING_VALUE" ]; then 
+    echo "❌ Distro '$DISTRO' non configurata in p4config (VTMN_ mancante)!"
     exit 1
 fi
 
-# 2. Calcoliamo l'IP bersaglio
-TARGET_IP="10.99.0.${VMID}"
+# 3. Estrazione dei dati (ci serve l'IP reale e il nome per i log)
+IFS=',' read -r vmid template_id mac target_ip vm_name <<< "$STRING_VALUE"
 
-echo "🔌 Preparazione connessione a $DISTRO ($TARGET_IP)..."
+echo "🔌 Preparazione connessione a $vm_name ($target_ip)..."
 
-# 3. --- RICHIAMO LA LIBRERIA CONDIVISA ---
-check_ssh_keys "$TARGET_IP"
+# 4. --- RICHIAMO LA LIBRERIA CONDIVISA ---
+check_ssh_keys "$target_ip"
 
-# 4. Connessione SSH interattiva
-echo "🚀 Connesso a $DISTRO! [Digita 'exit' o premi CTRL+D per chiudere la sessione]"
-ssh "artisan@${TARGET_IP}"
+# 5. Connessione SSH interattiva
+echo "🚀 Connesso a $vm_name! [Digita 'exit' o premi CTRL+D per chiudere la sessione]"
+
+# Se i template cloud-init usano ancora root come default, cambia 'artisan' con 'root'
+ssh "artisan@${target_ip}"

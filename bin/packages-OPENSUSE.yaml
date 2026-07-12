@@ -1,0 +1,15 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - go
+  - rpm-build
+  - rpmdevtools
+  - openssh
+  - rsync
+  - git
+runcmd:
+  - zypper install -y -t pattern devel_basis
+  - systemctl enable --now sshd
+  - firewall-cmd --add-service=ssh --permanent
+  - firewall-cmd --reload

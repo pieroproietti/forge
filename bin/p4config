@@ -1,57 +1,21 @@
 # Configurazione Proxmox Padre per penguins-eggs
 PVE_NODE="father"              # Il nome del tuo nodo Proxmox
 PVE_TARGET="root@192.168.1.2"  # IP del Proxmox padre (con chiavi SSH già scambiate)
+PVE_STORAGE="father-zfs"       # Storage pool su Proxmox per i dischi VM
+PVE_GW="192.168.1.254"         # Gateway della rete locale per Cloud-Init
 
-#!/bin/bash
+# VMID, TEMPLATEID, MAC, IP, NAME
+VTMN_ALPINE="201,9001,BC:24:11:00:02:01,192.168.1.201,forge-alpine"
+VTMN_ARCH="202,9002,BC:24:11:00:02:02,192.168.1.202,forge-arch"
+VTMN_DEBIAN="203,9003,BC:24:11:00:02:03,192.168.1.203,forge-debian"
+VTMN_DEVUAN="204,9004,BC:24:11:00:02:04,192.168.1.204,forge-devuan"
+VTMN_FEDORA="205,9005,BC:24:11:00:02:05,192.168.1.205,forge-fedora"
+VTMN_MANJARO="206,9006,BC:24:11:00:02:06,192.168.1.206,forge-manjaro"
+VTMN_OPENSUSE="207,9007,BC:24:11:00:02:07,192.168.1.207,forge-opensuse"
+VTMN_UBUNTU="208,9008,BC:24:11:00:02:08,192.168.1.208,forge-ubuntu"
 
-# 1. I materiali di partenza (senza spazi attorno all'=)
-IMN_ALPINE="BC:24:11:00:02:01,10.99.0.201,forge-alpine"
-IMN_ARCH="BC:24:11:00:02:02,10.99.0.202,forge-arch"
-IMN_DEBIAN="BC:24:11:00:02:03,10.99.0.203,forge-debian"
-IMN_DEVUAN="BC:24:11:00:02:04,10.99.0.204,forge-devuan"
-IMN_FEDORA="BC:24:11:00:02:05,10.99.0.205,forge-fedora"
-IMN_MANJARO="BC:24:11:00:02:06,10.99.0.206,forge-manjaro"
-IMN_OPENSUSE="BC:24:11:00:02:07,10.99.0.207,forge-opensuse"
-IMN_UBUNTU="BC:24:11:00:02:08,10.99.0.208,forge-ubuntu"
-
-# 2. Creazione della lista delle distribuzioni
-DISTROS=("ALPINE" "ARCH" "DEBIAN" "DEVUAN" "FEDORA" "MANJARO" "OPENSUSE" "UBUNTU")
-
-echo "Costruzione delle variabili in corso..."
-echo "----------------------------------------"
-
-# 3. Il ciclo di catena di montaggio
-for distro in "${DISTROS[@]}"; do
-    # Puntiamo al nome della variabile sorgente (es. IMN_ALPINE) e ne estraiamo il valore
-    var_source="IMN_${distro}"
-    string_value="${!var_source}"
-
-    # Spezziamo la stringa in tre pezzi usando la virgola come separatore (IFS)
-    IFS=',' read -r mac ip name <<< "$string_value"
-
-    # Estraiamo l'ID prendendo solo l'ultima parte dell'IP (dopo l'ultimo punto)
-    id="${ip##*.}"
-
-    # Dichiariamo dinamicamente le nuove variabili globali per l'uso nello script
-    declare "VM_ID_${distro}=${id}"
-    declare "VM_MAC_${distro}=${mac}"
-    declare "VM_NAME_${distro}=${name}"
-
-    # --- Stampa di collaudo ---
-    echo "=== ${distro} ==="
-    # Uso l'indirezione per stampare il valore appena assegnato
-    var_out_id="VM_ID_${distro}"; echo "VM_ID_${distro}=${!var_out_id}"
-    var_out_mac="VM_MAC_${distro}"; echo "VM_MAC_${distro}=${!var_out_mac}"
-    var_out_name="VM_NAME_${distro}"; echo "VM_NAME_${distro}=${!var_out_name}"
-    echo ""
-done
-
-# Nome dello snapshot "vergine" per i rollback
+# Nome dello snapshot "vergine" per i rollback (opzionale)
 SNAPSHOT_NAME="virgin"
-
-# ---------------------------------------------------------
-# FUNZIONI LIBRERIA CONDIVISE
-# ---------------------------------------------------------
 
 # Uso: check_ssh_keys <IP_BERSAGLIO> [UTENTE]
 check_ssh_keys() {
