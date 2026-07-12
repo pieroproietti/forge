@@ -1,4 +1,5 @@
 #cloud-config
+ssh_pwauth: true
 bootcmd:
   - sed -i '/community/s/^#//' /etc/apk/repositories
   - apk update

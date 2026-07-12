@@ -48,7 +48,7 @@ create_vm() {
       --net0 virtio,bridge=vmbr0,firewall=1,macaddr=${mac} \
       --args '-virtfs local,path=/eggs/shared,mount_tag=eggs_shared,security_model=none,id=eggs_shared'"
 
-    # 3. INIEZIONE DINAMICA DELLA CHIAVE (Il pezzo nuovo)
+    # 3. GENERAZIONE DINAMICA DEL CLOUD-INIT USER-DATA
     # Rileva automaticamente se usi una chiave RSA o ED25519 su colibri
     if [ -f "$HOME/.ssh/id_rsa.pub" ]; then
         LOCAL_PUB_KEY=$(cat "$HOME/.ssh/id_rsa.pub")
@@ -59,34 +59,45 @@ create_vm() {
         return
     fi
 
-    # Spedisce la chiave di colibri in un file temporaneo sul Proxmox padre
-    ssh "$PVE_TARGET" "echo '$LOCAL_PUB_KEY' > /tmp/colibri_key_${vmid}.pub"
-
-    # Configura Cloud-Init inserendo l'IP locale e forzando l'utente 'artisan' con la tua chiave
+    # Configura Cloud-Init inserendo l'IP locale e DNS
     ssh "$PVE_TARGET" "qm set $vmid --ipconfig0 ip=${ip}/24,gw=${PVE_GW:-192.168.1.254}"
     ssh "$PVE_TARGET" "qm set $vmid --nameserver 8.8.8.8"
-    ssh "$PVE_TARGET" "qm set $vmid --ciuser artisan"
-    ssh "$PVE_TARGET" "qm set $vmid --sshkey /tmp/colibri_key_${vmid}.pub"
 
-    # Pulizia del file temporaneo sul nodo Proxmox padre
-    ssh "$PVE_TARGET" "rm /tmp/colibri_key_${vmid}.pub"
-
-    # --- INIEZIONE PACCHETTI (Dinamica per Distro) ---
-    LOCAL_YAML_FILE="${SCRIPT_DIR}/packages-${target_name}.yaml"
+    # Genera il file user-data dinamico temporaneo su colibri
+    TEMP_YAML="/tmp/user-data-${vmid}.yaml"
     
+    echo "#cloud-config" > "$TEMP_YAML"
+    echo "hostname: ${name}" >> "$TEMP_YAML"
+    echo "manage_etc_hosts: true" >> "$TEMP_YAML"
+    echo "ssh_pwauth: true" >> "$TEMP_YAML"
+    echo "users:" >> "$TEMP_YAML"
+    echo "  - default" >> "$TEMP_YAML"
+    echo "  - name: artisan" >> "$TEMP_YAML"
+    echo "    groups: sudo, wheel" >> "$TEMP_YAML"
+    echo "    shell: /bin/bash" >> "$TEMP_YAML"
+    echo "    sudo: ['ALL=(ALL) NOPASSWD:ALL']" >> "$TEMP_YAML"
+    echo "    ssh_authorized_keys:" >> "$TEMP_YAML"
+    echo "      - ${LOCAL_PUB_KEY}" >> "$TEMP_YAML"
+    echo "chpasswd:" >> "$TEMP_YAML"
+    echo "  list: |" >> "$TEMP_YAML"
+    echo "    artisan:evolution" >> "$TEMP_YAML"
+    echo "  expire: False" >> "$TEMP_YAML"
+
+    # Se esiste il file pacchetti specifico della distro, accoda il suo contenuto
+    LOCAL_YAML_FILE="${SCRIPT_DIR}/packages-${target_name}.yaml"
     if [ -f "$LOCAL_YAML_FILE" ]; then
-        echo "📦 Trovato file pacchetti per $target_name, iniezione in corso..."
-        PVE_SNIPPET_DIR="/var/lib/vz/snippets"
-        REMOTE_YAML_FILE="${PVE_SNIPPET_DIR}/user-data-${vmid}.yaml"
-
-        # Copia il file specifico della distro tramite l'IP di PVE_TARGET
-        scp "$LOCAL_YAML_FILE" "${PVE_TARGET}:${REMOTE_YAML_FILE}"
-
-        # Istruisce Proxmox ad usarlo indicando lo storage attivo father-local
-        ssh "$PVE_TARGET" "qm set $vmid --cicustom 'user=father-local:snippets/user-data-${vmid}.yaml'"
-    else
-        echo "⏩ Nessun file pacchetti ($LOCAL_YAML_FILE) trovato. Salto l'installazione software."
+        echo "📦 Trovato file pacchetti per $target_name, accodamento configurazioni..."
+        grep -v '^#cloud-config' "$LOCAL_YAML_FILE" >> "$TEMP_YAML"
     fi
+
+    # Spedisce il file user-data finale sul Proxmox padre
+    PVE_SNIPPET_DIR="/var/lib/vz/snippets"
+    REMOTE_YAML_FILE="${PVE_SNIPPET_DIR}/user-data-${vmid}.yaml"
+    scp "$TEMP_YAML" "${PVE_TARGET}:${REMOTE_YAML_FILE}"
+    rm -f "$TEMP_YAML"
+
+    # Istruisce Proxmox ad usare il file custom user-data
+    ssh "$PVE_TARGET" "qm set $vmid --cicustom 'user=father-local:snippets/user-data-${vmid}.yaml'"
 
     echo "✅ VM $vmid ($name) creata all'indirizzo $ip con MAC $mac!"
     echo "👉 Avvia la VM con: ssh $PVE_TARGET 'qm start $vmid'"
