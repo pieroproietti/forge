@@ -13,6 +13,10 @@ basestrap /mnt base linux linux-firmware openssh qemu-guest-agent nano sudo
 # in chroot
 manjaro-chroot /mnt
 passwd
+useradd -m -G wheel -s /bin/bash artisan
+nqno /etc/sudert
+# %wheel ALL=(ALL:ALL) ALL
+
 pacman -S grub
 grub-install --target=i386-pc /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
