@@ -1,6 +1,9 @@
 # alpine-base
-apk add rsync
+sudo apk add rsync qemu-guest-agent
 
 # alpine-forge
-apk update
-apk add alpine-sdk go rsync
+sudo apk update
+sudo apk add alpine-sdk go rsync
+
+# firma (importante)
+abuild-keygen -a -i

@@ -1,8 +1,6 @@
 # arch-base
-pacman -S openssh rsync qemu-user-agent
-systemctl enable --now sshd
-systemctl enable --now qemu-user-agent
+sudo pacman -S openssh rsync qemu-guest-agent
+sudo systemctl enable --now sshd
+sudo systemctl enable --now qemu-guest-agent
 # arch-forge
-pacman -S base-devel git go
-
-
+sudo pacman -S base-devel git go
