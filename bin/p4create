@@ -87,6 +87,11 @@ create_vm() {
       --net0 ${net_opts} \
       --args '-virtfs local,path=/eggs/shared,mount_tag=eggs_shared,security_model=none,id=eggs_shared'"
 
+    if [ "$type" == "furnace" ]; then
+        echo "🏷️  Personalizzazione hostname della fucina a 'naked'..."
+        ssh "$PVE_TARGET" "virt-customize -a /dev/zvol/zfs/vm-${vmid}-disk-0 --hostname naked"
+    fi
+
     echo "✅ VM $vmid ($vm_name) creata con successo!"
     echo "👉 Avvia la VM con: ssh $PVE_TARGET 'qm start $vmid'"
 }
