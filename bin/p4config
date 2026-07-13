@@ -2,7 +2,7 @@
 PVE_NODE="father"              # Il nome del tuo nodo Proxmox
 PVE_TARGET="root@192.168.1.2"  # IP del Proxmox padre (con chiavi SSH già scambiate)
 PVE_STORAGE="father-zfs"       # Storage pool su Proxmox per i dischi VM
-PVE_GW="192.168.1.254"         # Gateway della rete locale per Cloud-Init
+PVE_GW="192.168.1.254"         # Gateway della rete locale
 
 # VMID, TEMPLATEID, MAC, IP, NAME
 VTMN_ALPINE="201,9001,BC:24:11:00:02:01,192.168.1.201,forge-alpine"
