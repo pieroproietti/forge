@@ -60,6 +60,7 @@ create_template() {
         --net0 virtio,bridge=vmbr0 \
         --scsihw virtio-scsi-single \
         --vga qxl \
+        --agent 1 \
         --ide2 none,media=cdrom \
         --scsi0 ${PVE_STORAGE}:16,discard=on \
         --boot 'order=ide2;scsi0'"
