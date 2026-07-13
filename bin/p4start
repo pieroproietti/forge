@@ -1,6 +1,8 @@
 #!/bin/bash
-# Uso standard: p4start debian
-# Uso con ISO:  p4start debian naked:iso/la-tua-uovo.iso
+# Uso standard: p4start debian [forge|furnace] [percorso_iso_opzionale]
+# Esempio: p4start debian
+# Esempio: p4start debian furnace
+# Esempio: p4start debian naked:iso/la-tua-uovo.iso
 
 CONFIG_FILE="$HOME/forge/bin/p4config"
 
@@ -11,14 +13,22 @@ fi
 source "$CONFIG_FILE"
 
 DISTRO=$1
-ISO_PATH=$2 # Argomento opzionale per montare una ISO live da testare
+TYPE="forge"
+ISO_PATH=""
 
 if [ -z "$DISTRO" ]; then
-    echo "Uso: p4start [debian|arch|manjaro|fedora] [percorso_iso_opzionale]"
+    echo "Uso: $0 [distro] [forge|furnace] [percorso_iso_opzionale]"
     exit 1
 fi
 
-# 2. Punta alla nuova stringa compatta
+if [ "$2" == "furnace" ] || [ "$2" == "forge" ]; then
+    TYPE=$2
+    ISO_PATH=$3
+else
+    ISO_PATH=$2
+fi
+
+# Punta alla variabile compatta
 VAR_NAME="VTMN_${DISTRO^^}"
 STRING_VALUE=${!VAR_NAME}
 
@@ -27,8 +37,13 @@ if [ -z "$STRING_VALUE" ]; then
     exit 1
 fi
 
-# 3. Estrazione dei dati
-IFS=',' read -r vmid template_id mac target_ip vm_name <<< "$STRING_VALUE"
+# Estrazione dei dati
+IFS=',' read -r base_vmid template_id mac target_ip vm_name <<< "$STRING_VALUE"
+
+vmid=$base_vmid
+if [ "$TYPE" == "furnace" ]; then
+    vmid=$((base_vmid + 100))
+fi
 
 # Se è stata passata una ISO, la agganciamo prima del boot
 if [ -n "$ISO_PATH" ]; then
@@ -36,5 +51,5 @@ if [ -n "$ISO_PATH" ]; then
     ssh "$PVE_TARGET" "qm set $vmid --ide2 ${ISO_PATH},media=cdrom"
 fi
 
-echo "🚀 Accensione fucina $DISTRO (VMID: $vmid) sul nodo $PVE_NODE..."
+echo "🚀 Accensione $TYPE $DISTRO (VMID: $vmid) sul nodo $PVE_NODE..."
 ssh "$PVE_TARGET" "qm start $vmid"

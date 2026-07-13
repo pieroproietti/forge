@@ -1,12 +1,14 @@
 #cloud-config
-ssh_pwauth: true
 package_update: true
 package_upgrade: true
+
 packages:
   - base-devel
-  - go
-  - rsync
   - git
+  - go
   - openssh
+  - qemu-user-agent
+
 runcmd:
   - systemctl enable --now sshd
+  - systemctl enable --now qemu-user-agent

@@ -1,18 +1,18 @@
 # forge
 
-E' il mio raccoglitore di progetti, ne ho sentito la necessità per uniformare il repository penguins-blog [panguins-eggs.net](https://panguins-eggs.net) con penguins-eggs e penguins-eggs.
+E' costituito da diversi template:
+- 9001 alpine
+- 9002 arch
+- 9003 debian
+- 9004 devuan
+- 9005 fedora
+- 9006 manjaro
+- 9007 opensuse
+- 9008 ubuntu
 
-Visto che sto sperimentando claude, ed il suo agent, riporto le istruzioni per l'installazione di nodejs via npm senza problemi di sudo:
+che vengono usati per create le varie vm forge-distro.
 
-Aprire terminale:
-```
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
-```
-Uscire e riaprire il teminale:
-```
-nvm install --lts
-npm install -g @anthropic-ai/claude-code
-npm install -g pnpm
-cd penguins-eggs 
-npm i
-```
+I MAC address vanno associati agli indirizzi sul router, per il rilascio di ip statici.
+
+Ogni template ha una installazione base che comprende openssh e quemu-guest agent, user artisan/evolution abilitato a supervisore.
+
