@@ -1,0 +1,1 @@
+dnf install go rpm-build rpmdevtools git make gcc gcc-c++ binutils patch autoconf automake libtool
